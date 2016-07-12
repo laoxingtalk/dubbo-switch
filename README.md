@@ -1,5 +1,6 @@
 ![](https://raw.githubusercontent.com/xburning/dubbo-switch/master/images/dubbo_switch_logo.png)
 
+[![Build Status](https://travis-ci.org/xburning/dubbo-switch.svg?branch=master)](https://travis-ci.org/xburning/dubbo-switch)
 ------------
 
 ### DubboSwitch 是什么:
