@@ -109,7 +109,7 @@ public class HomePageUI extends UI{
         button.setIcon(getFileResource("images/github.png",".png"));
         button.setCaption("了解更多");
         button.setStyleName(ValoTheme.BUTTON_TINY);
-        button.addClickListener((Button.ClickListener) clickEvent -> getUI().getPage().open("https://github.com/xburning", "_blank"));
+        button.addClickListener((Button.ClickListener) clickEvent -> getUI().getPage().open("https://github.com/xburning/dubbo-switch", "_blank"));
         return button;
     }
 
