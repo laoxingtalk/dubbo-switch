@@ -21,4 +21,5 @@
 ![](https://raw.githubusercontent.com/xburning/dubbo-switch/master/images/home_page.jpg)
 
 - *切换效果图*
+
 ![](https://raw.githubusercontent.com/xburning/dubbo-switch/master/images/switch_page.jpg)
