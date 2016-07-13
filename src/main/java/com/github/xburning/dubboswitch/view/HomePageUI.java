@@ -93,8 +93,7 @@ public class HomePageUI extends UI{
      * @return
      */
     private Image getLogoImg() {
-        Image image = new Image();
-        image.setIcon(getFileResource("images/dubbo_switch_logo.png",".png"));
+        Image image = new Image(null,getFileResource("images/dubbo_switch_logo.png",".png"));
         image.setHeight("80px");
         image.setWidth("200px");
         return image;
