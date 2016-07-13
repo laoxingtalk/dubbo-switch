@@ -155,6 +155,7 @@ public class ZookeeperAppSwitchUI extends Window{
             Response response = DubboSwitchTool.switchAppProvider(provider.getIp() + ":" + provider.getPort(), consumer.getIp() + ":" + consumer.getPort(), appField.getValue());
             if (!response.isSuccess()) {
                 Notification.show(response.getMessage(), Notification.Type.ERROR_MESSAGE);
+                return;
             }
             updateZookeeperLastInfo(consumer, provider);
             isSwitchSuccess = true;
