@@ -2,6 +2,8 @@ package com.github.xburning.dubboswitch.util;
 
 
 import org.apache.zookeeper.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -11,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DubboSwitchTool {
+
+    private static final Logger logger = LoggerFactory.getLogger(DubboSwitchTool.class);
 
     private static final String DUBBO_ROOT_NODE = "/dubbo";
 
@@ -65,26 +69,28 @@ public class DubboSwitchTool {
             }
             switchProviderNode(sourceServiceBeans, targetZk);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("切换失败",e);
             response.setSuccess(false);
             response.setMessage("切换失败:" + e.getMessage());
         } finally {
-            if(sourceZk != null){
-                try {
-                    sourceZk.close();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            if(targetZk != null){
-                try {
-                    targetZk.close();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            closeZk(sourceZk);
+            closeZk(targetZk);
         }
         return response;
+    }
+
+    /**
+     * 关闭zk
+     * @param zookeepr
+     */
+    private static void closeZk(ZooKeeper zookeepr) {
+        if(zookeepr != null){
+            try {
+                zookeepr.close();
+            } catch (InterruptedException e) {
+                logger.error("关闭zk",e);
+            }
+        }
     }
 
     /**
@@ -187,10 +193,11 @@ public class DubboSwitchTool {
         try {
             zooKeeper = new ZooKeeper(hostPort, ZK_SESSION_TIMEOUT, event -> {});
             zooKeeper.getChildren(DUBBO_ROOT_NODE, false);
+            return zooKeeper;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("连接zk",e);
+            closeZk(zooKeeper);
+            return null;
         }
-        return zooKeeper;
     }
-
 }
