@@ -28,7 +28,7 @@ public class DubboSwitchTool {
 
     private static final String APPLICATION = "application";
 
-    private static final int ZK_SESSION_TIMEOUT = 60000;
+    private static final int ZK_SESSION_TIMEOUT = 10000;
 
     private static final String CHAR_ENCODING = "UTF-8";
 
@@ -42,8 +42,10 @@ public class DubboSwitchTool {
      */
     public static Response switchAppProvider(String sourceHostPort, String targetHostPort, String appName) {
         Response response = new Response(true,"切换成功!");
+        ZooKeeper sourceZk = null;
+        ZooKeeper targetZk = null;
         try {
-            ZooKeeper sourceZk = connectZk(sourceHostPort);
+            sourceZk = connectZk(sourceHostPort);
             if (sourceZk == null) {
                 response.setSuccess(false);
                 response.setMessage("无法连接:" + sourceHostPort);
@@ -55,7 +57,7 @@ public class DubboSwitchTool {
                 response.setMessage("无" + appName + "服务提供者:" + sourceHostPort);
                 return response;
             }
-            ZooKeeper targetZk = connectZk(targetHostPort);
+            targetZk = connectZk(targetHostPort);
             if (targetZk == null) {
                 response.setSuccess(false);
                 response.setMessage("无法连接:" + targetHostPort);
@@ -65,7 +67,22 @@ public class DubboSwitchTool {
         } catch (Exception e) {
             e.printStackTrace();
             response.setSuccess(false);
-            response.setMessage("切换失败!");
+            response.setMessage("切换失败:" + e.getMessage());
+        } finally {
+            if(sourceZk != null){
+                try {
+                    sourceZk.close();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(targetZk != null){
+                try {
+                    targetZk.close();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return response;
     }
@@ -168,13 +185,9 @@ public class DubboSwitchTool {
     private static ZooKeeper connectZk(String hostPort) {
         ZooKeeper zooKeeper = null;
         try {
-            zooKeeper = new ZooKeeper(hostPort, ZK_SESSION_TIMEOUT, new Watcher() {
-                @Override
-                public void process(WatchedEvent event) {
-
-                }
-            });
-        } catch (IOException e) {
+            zooKeeper = new ZooKeeper(hostPort, ZK_SESSION_TIMEOUT, event -> {});
+            zooKeeper.getChildren(DUBBO_ROOT_NODE, false);
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return zooKeeper;
