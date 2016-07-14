@@ -1,6 +1,6 @@
 ![](https://raw.githubusercontent.com/xburning/dubbo-switch/master/images/dubbo_switch_logo.png)
 
-[![Build Status](https://travis-ci.org/xburning/dubbo-switch.svg?branch=master)](https://travis-ci.org/xburning/dubbo-switch)
+[![Build Status](https://travis-ci.org/xburning/dubbo-switch.svg?branch=master)](https://travis-ci.org/xburning/dubbo-switch)        [![Coverage Status](https://coveralls.io/repos/github/xburning/dubbo-switch/badge.svg?branch=master)](https://coveralls.io/github/xburning/dubbo-switch?branch=master)
 ------------
 
 ### DubboSwitch 是什么:
