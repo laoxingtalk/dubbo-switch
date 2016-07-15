@@ -3,11 +3,12 @@ jdk:
   - oraclejdk8
 #after_success:
 #  - mvn clean cobertura:cobertura coveralls:report
+before_deploy:
+  - export MY_FILE_PATH=$(ls target/dubbo-switch-*.jar)
 deploy:
   provider: releases
   api_key: $github_release_token
-  file: $HOME/build/xburning/dubbo-switch/target/dubbo-switch-1.0.1.jar
+  file: "${MY_FILE_PATH}"
   skip_cleanup: true
-  overwrite: true
-#  on:
-#     tags: true
+  on:
+    tags: true
