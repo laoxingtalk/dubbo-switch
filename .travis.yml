@@ -6,7 +6,7 @@ jdk:
 deploy:
   provider: releases
   api_key: $github_release_token
-  file: $HOME/build/xburning/dubbo-switch/target/dubbo-switch-*.jar
+  file: $HOME/build/xburning/dubbo-switch/target/dubbo-switch-1.0.1.jar
   skip_cleanup: true
   overwrite: true
 #  on:
