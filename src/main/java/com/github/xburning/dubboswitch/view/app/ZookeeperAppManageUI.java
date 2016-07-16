@@ -105,8 +105,11 @@ public class ZookeeperAppManageUI extends VerticalLayout{
             }
             //batch delete
             for (Object object : items) {
-                Long id = (Long) grid.getContainerDataSource().getItem(object).getItemProperty("序号").getValue();
-                zookeeperAppRepository.delete(id);
+                Item item = grid.getContainerDataSource().getItem(object);
+                if(item != null){
+                    Long id = (Long) item.getItemProperty("序号").getValue();
+                    zookeeperAppRepository.delete(id);
+                }
             }
             search();
         });

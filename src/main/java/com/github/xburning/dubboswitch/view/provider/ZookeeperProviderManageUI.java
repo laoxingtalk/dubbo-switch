@@ -1,10 +1,9 @@
 package com.github.xburning.dubboswitch.view.provider;
 
 
-import com.github.xburning.dubboswitch.entity.ZookeeperConsumer;
 import com.github.xburning.dubboswitch.entity.ZookeeperProvider;
-import com.github.xburning.dubboswitch.repository.ZookeeperConsumerRepository;
 import com.github.xburning.dubboswitch.repository.ZookeeperProviderRepository;
+import com.vaadin.data.Item;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
@@ -67,8 +66,11 @@ public class ZookeeperProviderManageUI extends VerticalLayout{
             }
             //batch delete
             for (Object object : items) {
-                Long id = (Long) grid.getContainerDataSource().getItem(object).getItemProperty("序号").getValue();
-                zookeeperProviderRepository.delete(id);
+                Item item = grid.getContainerDataSource().getItem(object);
+                if (item != null) {
+                    Long id = (Long) item.getItemProperty("序号").getValue();
+                    zookeeperProviderRepository.delete(id);
+                }
             }
             search();
         });
