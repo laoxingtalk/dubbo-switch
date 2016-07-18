@@ -24,3 +24,7 @@
 - *切换效果图*
 
 ![](https://raw.githubusercontent.com/xburning/dubbo-switch/master/images/switch_page.jpg)
+
+### 许可:
+这个项目使用的许可为 [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
+
