@@ -30,6 +30,8 @@ public class ZookeeperAppManageUI extends VerticalLayout{
 
     private final ZookeeperAppSwitchUI zookeeperAppSwitchUI;
 
+    private final ZookeeperAppClearUI zookeeperAppClearUI;
+
     private Grid grid;
 
     private TextField filterField;
@@ -37,14 +39,16 @@ public class ZookeeperAppManageUI extends VerticalLayout{
     private Button searchButton;
 
     @Autowired
-    public ZookeeperAppManageUI(ZookeeperAppRepository zookeeperAppRepository, ZookeeperAppAddUI zookeeperAppAddUI,ZookeeperAppSwitchUI zookeeperAppSwitchUI) {
+    public ZookeeperAppManageUI(ZookeeperAppRepository zookeeperAppRepository, ZookeeperAppAddUI zookeeperAppAddUI,ZookeeperAppSwitchUI zookeeperAppSwitchUI,ZookeeperAppClearUI zookeeperAppClearUI) {
         this.zookeeperAppRepository = zookeeperAppRepository;
         this.zookeeperAppAddUI = zookeeperAppAddUI;
         this.zookeeperAppSwitchUI = zookeeperAppSwitchUI;
+        this.zookeeperAppClearUI = zookeeperAppClearUI;
         createOperatePanel();
         createDataGrid();
         addAppAddWinCloseListener();
         addAppSwitchWinCloseListener();
+        addAppClearWinCloseListener();
     }
 
     /**
@@ -142,17 +146,32 @@ public class ZookeeperAppManageUI extends VerticalLayout{
         grid.addColumn("已切换消费者",String.class);
         grid.addColumn("已切换提供者",String.class);
         grid.addColumn("切换时间",String.class);
-        grid.addColumn("操作",String.class);
-        grid.getColumn("操作").setRenderer(new ButtonRenderer((ClickableRenderer.RendererClickListener) rendererClickEvent -> {
+        addColumnButton("切换");
+        addColumnButton("清理");
+        addComponent(grid);
+        search();
+    }
+
+    /**
+     * 添加按钮列
+     * @param pId
+     */
+    private void addColumnButton(String pId) {
+        Grid.Column column = grid.addColumn(pId,String.class);
+        column.setWidth(100d);
+        column.setRenderer(new ButtonRenderer((ClickableRenderer.RendererClickListener) rendererClickEvent -> {
             Object itemId = rendererClickEvent.getItemId();
             Item item = grid.getContainerDataSource().getItem(itemId);
             Long appId = (Long) item.getItemProperty("序号").getValue();
             String appName = (String) item.getItemProperty("应用名称").getValue();
-            zookeeperAppSwitchUI.show(appId,appName);
-            UI.getCurrent().addWindow(zookeeperAppSwitchUI);
+            if ("清理".equals(pId)) {
+                zookeeperAppClearUI.show(appId,appName);
+                UI.getCurrent().addWindow(zookeeperAppClearUI);
+            } else if ("切换".equals(pId)) {
+                zookeeperAppSwitchUI.show(appId,appName);
+                UI.getCurrent().addWindow(zookeeperAppSwitchUI);
+            }
         }));
-        addComponent(grid);
-        search();
     }
 
 
@@ -180,6 +199,18 @@ public class ZookeeperAppManageUI extends VerticalLayout{
         });
     }
 
+    /**
+     * 添加应用服务清理关闭监听
+     */
+    private void addAppClearWinCloseListener() {
+        this.zookeeperAppClearUI.addCloseListener((Window.CloseListener) closeEvent -> {
+            if (this.zookeeperAppClearUI.isClearSuccess) {
+                search();
+                this.zookeeperAppClearUI.isClearSuccess = false;
+            }
+        });
+    }
+
 
     /**
      * 查询数据
@@ -196,7 +227,7 @@ public class ZookeeperAppManageUI extends VerticalLayout{
         for(ZookeeperApp zookeeperApp :list){
             Date switchTime = zookeeperApp.getLastSwitchTime();
             String lastSwitchTime = switchTime == null ? "": new DateTime(switchTime).toString("yyyy-MM-dd HH:mm:ss");
-            grid.addRow(zookeeperApp.getId(), zookeeperApp.getName(), zookeeperApp.getLastSwitchConsumer(),zookeeperApp.getLastSwitchProvider(), lastSwitchTime,"选择切换");
+            grid.addRow(zookeeperApp.getId(), zookeeperApp.getName(), zookeeperApp.getLastSwitchConsumer(),zookeeperApp.getLastSwitchProvider(), lastSwitchTime,"切换","清理");
         }
     }
 

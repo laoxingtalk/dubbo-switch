@@ -80,6 +80,47 @@ public class DubboSwitchTool {
     }
 
     /**
+     * 清理应用服务提供者
+     * @param targetHostPort
+     * @param appName
+     * @return
+     */
+    public static Response clearAppProvider(String targetHostPort, String appName) {
+        Response response = new Response(true,"清理成功!");
+        ZooKeeper targetZk = null;
+        try {
+            targetZk = connectZk(targetHostPort);
+            if (targetZk == null) {
+                response.setSuccess(false);
+                response.setMessage("无法连接:" + targetHostPort);
+                return response;
+            }
+            List<DubboServiceBean> targetServiceBeans = getDubboServiceBeans(targetZk, appName);
+            if (targetServiceBeans.isEmpty()) {
+                response.setSuccess(false);
+                response.setMessage("无" + appName + "服务提供者:" + targetHostPort);
+                return response;
+            }
+            for (DubboServiceBean serviceBean : targetServiceBeans) {
+                String providerPath = DUBBO_ROOT_NODE + SLASH_SEPARATOR + serviceBean.getServiceName() + DUBBO_PROVIDERS_NODE;
+                //remove all target providers
+                List<String> targetProviders = targetZk.getChildren(providerPath, false);
+                for (String targetProvider : targetProviders) {
+                    deleteNode(targetZk, providerPath + SLASH_SEPARATOR + targetProvider);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("清理失败",e);
+            response.setSuccess(false);
+            response.setMessage("清理失败:" + e.getMessage());
+        } finally {
+            closeZk(targetZk);
+        }
+        return response;
+    }
+
+
+    /**
      * 关闭zk
      * @param zookeepr
      */

@@ -8,55 +8,48 @@ import com.github.xburning.dubboswitch.repository.ZookeeperConsumerRepository;
 import com.github.xburning.dubboswitch.repository.ZookeeperProviderRepository;
 import com.github.xburning.dubboswitch.util.DubboSwitchTool;
 import com.github.xburning.dubboswitch.util.Response;
-import com.vaadin.data.Item;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
 
 /**
- * Zookeeper 应用服务切换
+ * Zookeeper 应用服务提供者清理
  */
 @SpringUI
-public class ZookeeperAppSwitchUI extends Window{
+public class ZookeeperAppClearUI extends Window{
 
     private final ZookeeperAppRepository zookeeperAppRepository;
 
     private final ZookeeperConsumerRepository zookeeperConsumerRepository;
 
-    private final ZookeeperProviderRepository zookeeperProviderRepository;
-
-    public boolean isSwitchSuccess = false;
+    public boolean isClearSuccess = false;
 
     private TextField appField;
 
     private ComboBox consumerBox;
 
-    private ComboBox providerBox;
-
     private Long appId;
 
-    private Button switchButton;
+    private Button clearButton;
 
     @Autowired
-    public ZookeeperAppSwitchUI(ZookeeperAppRepository zookeeperAppRepository,ZookeeperConsumerRepository zookeeperConsumerRepository,ZookeeperProviderRepository zookeeperProviderRepository) {
-        super("切换服务提供者");
+    public ZookeeperAppClearUI(ZookeeperAppRepository zookeeperAppRepository, ZookeeperConsumerRepository zookeeperConsumerRepository) {
+        super("清理服务提供者");
         this.zookeeperAppRepository = zookeeperAppRepository;
         this.zookeeperConsumerRepository = zookeeperConsumerRepository;
-        this.zookeeperProviderRepository = zookeeperProviderRepository;
         center();
         setModal(true);
         setClosable(true);
         setDraggable(false);
         setResizable(false);
         setWidth(350,Unit.PIXELS);
-        setHeight(260,Unit.PIXELS);
+        setHeight(200,Unit.PIXELS);
         createSubmitForm();
     }
 
@@ -69,8 +62,7 @@ public class ZookeeperAppSwitchUI extends Window{
         appField.setWidth("100%");
         formLayout.addComponent(appField);
         formLayout.addComponent(createConsumerBox());
-        formLayout.addComponent(createProviderBox());
-        formLayout.addComponent(createSwitchButton());
+        formLayout.addComponent(createClearButton());
         formLayout.setMargin(true);
         setContent(formLayout);
     }
@@ -100,86 +92,49 @@ public class ZookeeperAppSwitchUI extends Window{
     }
 
     /**
-     * 创建提供者列表
+     * 创建清理按钮
      * @return
      */
-    private ComboBox createProviderBox() {
-        providerBox = new ComboBox("提供者");
-        providerBox.setWidth("100%");
-        providerBox.setFilteringMode(FilteringMode.CONTAINS);
-        reloadProviderBox();
-        return providerBox;
-    }
-
-    /**
-     * 重新装载提供者
-     */
-    private void reloadProviderBox() {
-        providerBox.removeAllItems();
-        List<ZookeeperProvider> providers = zookeeperProviderRepository.findAll();
-        for (ZookeeperProvider provider : providers) {
-            providerBox.addItem(provider.getId());
-            providerBox.setItemCaption(provider.getId(),provider.getName());
-        }
-    }
-
-    /**
-     * 创建切换按钮
-     * @return
-     */
-    private Button createSwitchButton() {
-        switchButton = new Button("切换", FontAwesome.REFRESH);
-        switchButton.setDisableOnClick(true);
-        switchButton.addStyleName(ValoTheme.BUTTON_DANGER);
-        switchButton.addClickListener((Button.ClickListener) clickEvent -> {
+    private Button createClearButton() {
+        clearButton = new Button("清理", FontAwesome.TRASH);
+        clearButton.addStyleName(ValoTheme.BUTTON_DANGER);
+        clearButton.setDisableOnClick(true);
+        clearButton.addClickListener((Button.ClickListener) clickEvent -> {
             Long consumerId = (Long) consumerBox.getValue();
             if (consumerId == null) {
                 Notification.show("请选择消费者!", Notification.Type.ERROR_MESSAGE);
-                switchButton.setEnabled(true);
-                return;
-            }
-            Long providerId = (Long) providerBox.getValue();
-            if (providerId == null) {
-                Notification.show("请选择提供者!", Notification.Type.ERROR_MESSAGE);
-                switchButton.setEnabled(true);
+                clearButton.setEnabled(true);
                 return;
             }
             ZookeeperConsumer consumer = zookeeperConsumerRepository.findOne(consumerId);
             if (consumer == null) {
                 Notification.show("消费者获取失败!", Notification.Type.ERROR_MESSAGE);
-                switchButton.setEnabled(true);
+                clearButton.setEnabled(true);
                 return;
             }
-            ZookeeperProvider provider = zookeeperProviderRepository.findOne(providerId);
-            if (provider == null) {
-                Notification.show("提供者获取失败!", Notification.Type.ERROR_MESSAGE);
-                switchButton.setEnabled(true);
-                return;
-            }
-            //switch app service
-            Response response = DubboSwitchTool.switchAppProvider(provider.getIp() + ":" + provider.getPort(), consumer.getIp() + ":" + consumer.getPort(), appField.getValue());
+            //clear app service
+            Response response = DubboSwitchTool.clearAppProvider(consumer.getIp() + ":" + consumer.getPort(), appField.getValue());
             if (!response.isSuccess()) {
                 Notification.show(response.getMessage(), Notification.Type.ERROR_MESSAGE);
-                switchButton.setEnabled(true);
+                clearButton.setEnabled(true);
                 return;
             }
-            updateZookeeperLastInfo(consumer, provider);
-            switchButton.setEnabled(true);
-            isSwitchSuccess = true;
+            updateZookeeperLastInfo(consumer);
+            clearButton.setEnabled(true);
+            isClearSuccess = true;
             close();
         });
-        return switchButton;
+        return clearButton;
     }
 
     /**
      * 更新服务应用
      * @param consumer
-     * @param provider
      */
-    private void updateZookeeperLastInfo(ZookeeperConsumer consumer, ZookeeperProvider provider) {
+    private void updateZookeeperLastInfo(ZookeeperConsumer consumer) {
         ZookeeperApp zookeeperApp = zookeeperAppRepository.findOne(appId);
         zookeeperApp.setLastSwitchConsumer(consumer.getName());
-        zookeeperApp.setLastSwitchProvider(provider.getName());
+        zookeeperApp.setLastSwitchProvider("已清理");
         zookeeperApp.setLastSwitchTime(new Date());
         zookeeperAppRepository.save(zookeeperApp);
     }
@@ -191,6 +146,5 @@ public class ZookeeperAppSwitchUI extends Window{
         appField.setValue(appName);
         appField.setReadOnly(true);
         reloadConsumerBox();
-        reloadProviderBox();
     }
 }
