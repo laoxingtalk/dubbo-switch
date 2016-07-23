@@ -3,10 +3,13 @@ package com.github.xburning.dubboswitch.view.provider;
 
 import com.github.xburning.dubboswitch.entity.ZookeeperProvider;
 import com.github.xburning.dubboswitch.repository.ZookeeperProviderRepository;
+import com.github.xburning.dubboswitch.util.DubboSwitchTool;
 import com.vaadin.data.Item;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.ButtonRenderer;
+import com.vaadin.ui.renderers.ClickableRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -102,8 +105,30 @@ public class ZookeeperProviderManageUI extends VerticalLayout{
         grid.addColumn("IP",String.class);
         grid.addColumn("端口",String.class);
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        addTestColumnButton("测试");
         addComponent(grid);
         search();
+    }
+
+    /**
+     * 添加按钮列
+     * @param pId
+     */
+    private void addTestColumnButton(String pId) {
+        Grid.Column column = grid.addColumn(pId,String.class);
+        column.setWidth(100d);
+        column.setRenderer(new ButtonRenderer((ClickableRenderer.RendererClickListener) rendererClickEvent -> {
+            Object itemId = rendererClickEvent.getItemId();
+            Item item = grid.getContainerDataSource().getItem(itemId);
+            String ip = (String) item.getItemProperty("IP").getValue();
+            String port = (String) item.getItemProperty("端口").getValue();
+            boolean isConnected = DubboSwitchTool.isConnected(ip + ":" + port);
+            if (isConnected) {
+                Notification.show("连接成功!",Notification.Type.HUMANIZED_MESSAGE);
+                return;
+            }
+            Notification.show("连接失败!",Notification.Type.ERROR_MESSAGE);
+        }));
     }
 
 
@@ -127,7 +152,7 @@ public class ZookeeperProviderManageUI extends VerticalLayout{
         grid.getContainerDataSource().removeAllItems();
         List<ZookeeperProvider> list = zookeeperProviderRepository.findAll();
         for(ZookeeperProvider zookeeperProvider :list){
-            grid.addRow(zookeeperProvider.getId(), zookeeperProvider.getName(), zookeeperProvider.getIp(),zookeeperProvider.getPort().toString());
+            grid.addRow(zookeeperProvider.getId(), zookeeperProvider.getName(), zookeeperProvider.getIp(),zookeeperProvider.getPort().toString(),"测试");
         }
     }
 

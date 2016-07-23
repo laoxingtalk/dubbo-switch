@@ -3,15 +3,20 @@ package com.github.xburning.dubboswitch.view.consumer;
 
 import com.github.xburning.dubboswitch.entity.ZookeeperConsumer;
 import com.github.xburning.dubboswitch.repository.ZookeeperConsumerRepository;
+import com.github.xburning.dubboswitch.util.DubboSwitchTool;
 import com.vaadin.data.Item;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.ButtonRenderer;
+import com.vaadin.ui.renderers.ClickableRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.List;
+
+import static com.github.xburning.dubboswitch.util.DubboSwitchTool.isConnected;
 
 /**
  * Zookeeper 消费者管理页
@@ -102,8 +107,30 @@ public class ZookeeperConsumerManageUI extends VerticalLayout{
         grid.addColumn("IP",String.class);
         grid.addColumn("端口",String.class);
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        addTestColumnButton("测试");
         addComponent(grid);
         search();
+    }
+
+    /**
+     * 添加按钮列
+     * @param pId
+     */
+    private void addTestColumnButton(String pId) {
+        Grid.Column column = grid.addColumn(pId,String.class);
+        column.setWidth(100d);
+        column.setRenderer(new ButtonRenderer((ClickableRenderer.RendererClickListener) rendererClickEvent -> {
+            Object itemId = rendererClickEvent.getItemId();
+            Item item = grid.getContainerDataSource().getItem(itemId);
+            String ip = (String) item.getItemProperty("IP").getValue();
+            String port = (String) item.getItemProperty("端口").getValue();
+            boolean isConnected = DubboSwitchTool.isConnected(ip + ":" + port);
+            if (isConnected) {
+                Notification.show("连接成功!",Notification.Type.HUMANIZED_MESSAGE);
+                return;
+            }
+            Notification.show("连接失败!",Notification.Type.ERROR_MESSAGE);
+        }));
     }
 
 
@@ -127,7 +154,7 @@ public class ZookeeperConsumerManageUI extends VerticalLayout{
         grid.getContainerDataSource().removeAllItems();
         List<ZookeeperConsumer> list = zookeeperConsumerRepository.findAll();
         for(ZookeeperConsumer zookeeperConsumer :list){
-            grid.addRow(zookeeperConsumer.getId(), zookeeperConsumer.getName(), zookeeperConsumer.getIp(),zookeeperConsumer.getPort().toString());
+            grid.addRow(zookeeperConsumer.getId(), zookeeperConsumer.getName(), zookeeperConsumer.getIp(),zookeeperConsumer.getPort().toString(),"测试");
         }
     }
 

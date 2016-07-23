@@ -120,19 +120,6 @@ public class DubboSwitchTool {
     }
 
 
-    /**
-     * 关闭zk
-     * @param zookeepr
-     */
-    private static void closeZk(ZooKeeper zookeepr) {
-        if(zookeepr != null){
-            try {
-                zookeepr.close();
-            } catch (InterruptedException e) {
-                logger.error("关闭zk",e);
-            }
-        }
-    }
 
     /**
      * 切换提供者节点
@@ -240,5 +227,33 @@ public class DubboSwitchTool {
             closeZk(zooKeeper);
             return null;
         }
+    }
+
+    /**
+     * 关闭zk
+     * @param zookeepr
+     */
+    private static void closeZk(ZooKeeper zookeepr) {
+        if(zookeepr != null){
+            try {
+                zookeepr.close();
+            } catch (InterruptedException e) {
+                logger.error("关闭zk",e);
+            }
+        }
+    }
+
+    /**
+     * 是否连接成功
+     * @param hostPort
+     * @return
+     */
+    public static boolean isConnected(String hostPort) {
+        ZooKeeper zooKeeper = connectZk(hostPort);
+        if (zooKeeper == null) {
+            return false;
+        }
+        closeZk(zooKeeper);
+        return true;
     }
 }
