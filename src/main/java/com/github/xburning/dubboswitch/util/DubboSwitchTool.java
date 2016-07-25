@@ -55,8 +55,8 @@ public class DubboSwitchTool {
                 response.setMessage("无法连接:" + sourceHostPort);
                 return response;
             }
-            List<DubboServiceBean> sourceServiceBeans = getDubboServiceBeans(sourceZk, appName);
-            if (sourceServiceBeans.isEmpty()) {
+            boolean isExistProviders = existProviders(sourceZk, appName);
+            if (!isExistProviders) {
                 response.setSuccess(false);
                 response.setMessage("无" + appName + "服务提供者:" + sourceHostPort);
                 return response;
@@ -67,7 +67,7 @@ public class DubboSwitchTool {
                 response.setMessage("无法连接:" + targetHostPort);
                 return response;
             }
-            switchProviderNode(sourceServiceBeans, targetZk);
+            switchProviderNode(getDubboServiceBeans(sourceZk,appName), targetZk);
         } catch (Exception e) {
             logger.error("切换失败",e);
             response.setSuccess(false);
@@ -95,13 +95,13 @@ public class DubboSwitchTool {
                 response.setMessage("无法连接:" + targetHostPort);
                 return response;
             }
-            List<DubboServiceBean> targetServiceBeans = getDubboServiceBeans(targetZk, appName);
-            if (targetServiceBeans.isEmpty()) {
+            boolean isExistProviders = existProviders(targetZk, appName);
+            if (!isExistProviders) {
                 response.setSuccess(false);
                 response.setMessage("无" + appName + "服务提供者:" + targetHostPort);
                 return response;
             }
-            for (DubboServiceBean serviceBean : targetServiceBeans) {
+            for (DubboServiceBean serviceBean : getDubboServiceBeans(targetZk, appName)) {
                 String providerPath = DUBBO_ROOT_NODE + SLASH_SEPARATOR + serviceBean.getServiceName() + DUBBO_PROVIDERS_NODE;
                 //remove all target providers
                 List<String> targetProviders = targetZk.getChildren(providerPath, false);
@@ -113,6 +113,40 @@ public class DubboSwitchTool {
             logger.error("清理失败",e);
             response.setSuccess(false);
             response.setMessage("清理失败:" + e.getMessage());
+        } finally {
+            closeZk(targetZk);
+        }
+        return response;
+    }
+
+
+    /**
+     * 查看应用服务
+     * @param targetHostPort
+     * @param appName
+     * @return
+     */
+    public static Response viewAppServices(String targetHostPort, String appName) {
+        Response response = new Response(true,"查看成功!");
+        ZooKeeper targetZk = null;
+        try {
+            targetZk = connectZk(targetHostPort);
+            if (targetZk == null) {
+                response.setSuccess(false);
+                response.setMessage("无法连接:" + targetHostPort);
+                return response;
+            }
+            List<DubboServiceBean> serviceBeans = getDubboServiceBeans(targetZk, appName);
+            if (serviceBeans.isEmpty()) {
+                response.setSuccess(false);
+                response.setMessage("无数据");
+                return response;
+            }
+            response.setDubboServiceBeanList(serviceBeans);
+        } catch (Exception e) {
+            logger.error("查看失败",e);
+            response.setSuccess(false);
+            response.setMessage("查看失败:" + e.getMessage());
         } finally {
             closeZk(targetZk);
         }
@@ -191,23 +225,49 @@ public class DubboSwitchTool {
         String appNameKey = APPLICATION + EQUALS_SEPARATOR + appName;
         for (String serviceName : serviceNames) {
             String servicePath = DUBBO_ROOT_NODE + SLASH_SEPARATOR + serviceName;
-            List<String> providersList = zooKeeper.getChildren(servicePath + DUBBO_PROVIDERS_NODE, false);
-            boolean isSave = false;
-            for (String provider : providersList) {
-                provider = URLDecoder.decode(provider, CHAR_ENCODING);
-                if (provider.contains(appNameKey)) {
-                    isSave = true;
-                    break;
+            //过滤消费者
+            List<String> filteredConsumersList = new ArrayList<>();
+            String consumerPath = servicePath + DUBBO_CONSUMERS_NODE;
+            if (zooKeeper.exists(consumerPath, false) != null) {
+                List<String> consumersList = zooKeeper.getChildren(consumerPath, false);
+                for (String consumer : consumersList) {
+                    String _consumer = decode(consumer);
+                    if (_consumer.contains(appNameKey)) {
+                        filteredConsumersList.add(_consumer);
+                    }
                 }
             }
-            if (isSave) {
+            //过滤提供者
+            String providerPath = servicePath + DUBBO_PROVIDERS_NODE;
+            List<String> filteredProvidersList = new ArrayList<>();
+            if (zooKeeper.exists(providerPath, false) != null) {
+                List<String> providersList = zooKeeper.getChildren(providerPath, false);
+                for (String provider : providersList) {
+                    String _provider = decode(provider);
+                    if (_provider.contains(appNameKey)) {
+                        filteredProvidersList.add(provider);
+                    }
+                }
+            }
+            if (!(filteredConsumersList.isEmpty() && filteredProvidersList.isEmpty())) {
                 DubboServiceBean serviceBean = new DubboServiceBean();
                 serviceBean.setServiceName(serviceName);
-                serviceBean.setProvidersList(providersList);
+                serviceBean.setConsumersList(filteredConsumersList);
+                serviceBean.setProvidersList(filteredProvidersList);
                 dubboServiceBeanList.add(serviceBean);
             }
         }
         return dubboServiceBeanList;
+    }
+
+
+    public static String decode(String consumer){
+        try {
+            return URLDecoder.decode(consumer, CHAR_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            logger.error("",e);
+            return consumer;
+        }
     }
 
 
@@ -255,5 +315,28 @@ public class DubboSwitchTool {
         }
         closeZk(zooKeeper);
         return true;
+    }
+
+    /**
+     * 是否有提供者
+     * @param zk
+     * @param appName
+     * @return
+     * @throws InterruptedException
+     * @throws UnsupportedEncodingException
+     * @throws KeeperException
+     */
+    private static boolean existProviders(ZooKeeper zk,String appName) throws InterruptedException, UnsupportedEncodingException, KeeperException {
+        List<DubboServiceBean> serviceBeans = getDubboServiceBeans(zk, appName);
+        if (serviceBeans.isEmpty()) {
+            return false;
+        }
+        for (DubboServiceBean bean : serviceBeans) {
+            List<String> providers = bean.getProvidersList();
+            if (providers != null && !providers.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -32,6 +32,8 @@ public class ZookeeperAppManageUI extends VerticalLayout{
 
     private final ZookeeperAppClearUI zookeeperAppClearUI;
 
+    private final ZookeeperAppViewUI zookeeperAppViewUI;
+
     private Grid grid;
 
     private TextField filterField;
@@ -39,11 +41,12 @@ public class ZookeeperAppManageUI extends VerticalLayout{
     private Button searchButton;
 
     @Autowired
-    public ZookeeperAppManageUI(ZookeeperAppRepository zookeeperAppRepository, ZookeeperAppAddUI zookeeperAppAddUI,ZookeeperAppSwitchUI zookeeperAppSwitchUI,ZookeeperAppClearUI zookeeperAppClearUI) {
+    public ZookeeperAppManageUI(ZookeeperAppRepository zookeeperAppRepository, ZookeeperAppAddUI zookeeperAppAddUI,ZookeeperAppSwitchUI zookeeperAppSwitchUI,ZookeeperAppClearUI zookeeperAppClearUI,ZookeeperAppViewUI zookeeperAppViewUI) {
         this.zookeeperAppRepository = zookeeperAppRepository;
         this.zookeeperAppAddUI = zookeeperAppAddUI;
         this.zookeeperAppSwitchUI = zookeeperAppSwitchUI;
         this.zookeeperAppClearUI = zookeeperAppClearUI;
+        this.zookeeperAppViewUI = zookeeperAppViewUI;
         createOperatePanel();
         createDataGrid();
         addAppAddWinCloseListener();
@@ -148,6 +151,7 @@ public class ZookeeperAppManageUI extends VerticalLayout{
         grid.addColumn("切换时间",String.class);
         addColumnButton("切换");
         addColumnButton("清理");
+        addViewColumnButton("查看");
         addComponent(grid);
         search();
     }
@@ -171,6 +175,22 @@ public class ZookeeperAppManageUI extends VerticalLayout{
                 zookeeperAppSwitchUI.show(appId,appName);
                 UI.getCurrent().addWindow(zookeeperAppSwitchUI);
             }
+        }));
+    }
+
+    /**
+     * 添加查看列
+     * @param pId
+     */
+    private void addViewColumnButton(String pId) {
+        Grid.Column column = grid.addColumn(pId, String.class);
+        column.setWidth(100d);
+        column.setRenderer(new ButtonRenderer((ClickableRenderer.RendererClickListener) rendererClickEvent -> {
+            Object itemId = rendererClickEvent.getItemId();
+            Item item = grid.getContainerDataSource().getItem(itemId);
+            String appName = (String) item.getItemProperty("应用名称").getValue();
+            zookeeperAppViewUI.show(appName);
+            UI.getCurrent().addWindow(zookeeperAppViewUI);
         }));
     }
 
@@ -227,7 +247,7 @@ public class ZookeeperAppManageUI extends VerticalLayout{
         for(ZookeeperApp zookeeperApp :list){
             Date switchTime = zookeeperApp.getLastSwitchTime();
             String lastSwitchTime = switchTime == null ? "": new DateTime(switchTime).toString("yyyy-MM-dd HH:mm:ss");
-            grid.addRow(zookeeperApp.getId(), zookeeperApp.getName(), zookeeperApp.getLastSwitchConsumer(),zookeeperApp.getLastSwitchProvider(), lastSwitchTime,"切换","清理");
+            grid.addRow(zookeeperApp.getId(), zookeeperApp.getName(), zookeeperApp.getLastSwitchConsumer(),zookeeperApp.getLastSwitchProvider(), lastSwitchTime,"切换","清理","查看");
         }
     }
 
