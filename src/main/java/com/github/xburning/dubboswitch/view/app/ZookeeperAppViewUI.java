@@ -172,7 +172,7 @@ public class ZookeeperAppViewUI extends Window{
      * @return
      */
     private Button createViewButton(){
-        Button viewButton = new Button("查看");
+        Button viewButton = new Button("查看",FontAwesome.EYE);
         viewButton.setStyleName(ValoTheme.BUTTON_FRIENDLY);
         viewButton.addClickListener((Button.ClickListener) clickEvent -> {
             Long id = (Long) viewBox.getValue();
