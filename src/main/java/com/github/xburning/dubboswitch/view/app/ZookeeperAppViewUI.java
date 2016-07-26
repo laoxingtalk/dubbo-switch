@@ -40,6 +40,8 @@ public class ZookeeperAppViewUI extends Window{
 
     private Tree viewTree;
 
+    private OptionGroup zkOption;
+
     @Autowired
     public ZookeeperAppViewUI(ZookeeperConsumerRepository zookeeperConsumerRepository,ZookeeperProviderRepository zookeeperProviderRepository) {
         super("查看应用服务");
@@ -107,15 +109,15 @@ public class ZookeeperAppViewUI extends Window{
      * @return
      */
     private OptionGroup createZkOptionGroup(){
-        OptionGroup single = new OptionGroup();
-        single.addItem(0);
-        single.setItemCaption(0, "消费者");
-        single.addItem(1);
-        single.setItemCaption(1, "提供者");
-        single.setStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
-        single.select(0);
-        single.setNullSelectionAllowed(false);
-        single.addBlurListener((FieldEvents.BlurListener) blurEvent -> {
+        zkOption = new OptionGroup();
+        zkOption.addItem(0);
+        zkOption.setItemCaption(0, "消费者");
+        zkOption.addItem(1);
+        zkOption.setItemCaption(1, "提供者");
+        zkOption.setStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
+        zkOption.select(0);
+        zkOption.setNullSelectionAllowed(false);
+        zkOption.addBlurListener((FieldEvents.BlurListener) blurEvent -> {
             String selected = blurEvent.getSource().toString();
             if ("0".equals(selected)) {
                 isSelectedConsumer = true;
@@ -125,7 +127,7 @@ public class ZookeeperAppViewUI extends Window{
                 reloadProviderViewBox();
             }
         });
-        return single;
+        return zkOption;
     }
 
     /**
@@ -255,5 +257,8 @@ public class ZookeeperAppViewUI extends Window{
         appNameField.setReadOnly(false);
         appNameField.setValue(appName);
         appNameField.setReadOnly(true);
+        zkOption.select(0);
+        reloadConsumerViewBox();
+        viewTree.removeAllItems();
     }
 }
