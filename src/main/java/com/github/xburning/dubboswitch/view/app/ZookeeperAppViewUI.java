@@ -36,8 +36,6 @@ public class ZookeeperAppViewUI extends Window{
 
     private ComboBox viewBox;
 
-    private Button viewButton;
-
     private boolean isSelectedConsumer = true;
 
     private Tree viewTree;
@@ -172,7 +170,7 @@ public class ZookeeperAppViewUI extends Window{
      * @return
      */
     private Button createViewButton(){
-        viewButton = new Button("查看");
+        Button viewButton = new Button("查看");
         viewButton.setStyleName(ValoTheme.BUTTON_FRIENDLY);
         viewButton.addClickListener((Button.ClickListener) clickEvent -> {
             Long id = (Long) viewBox.getValue();
@@ -217,31 +215,34 @@ public class ZookeeperAppViewUI extends Window{
             String serviceName = dubboServiceBean.getServiceName();
             viewTree.addItem(serviceName);
             viewTree.expandItem(serviceName);
-            String consumerNode = serviceName + "-consumers";
-            viewTree.addItem(consumerNode);
-            viewTree.setParent(consumerNode, serviceName);
-            viewTree.expandItem(consumerNode);
-            List<String> consumersList = dubboServiceBean.getConsumersList();
-            if (consumersList != null) {
-                for (String _consumer : consumersList) {
-                    String url = DubboSwitchTool.decode(_consumer);
-                    viewTree.addItem(url);
-                    viewTree.setParent(url, consumerNode);
-                    viewTree.setChildrenAllowed(url, false);
-                }
-            }
-            String providerNode = serviceName + "-providers";
-            viewTree.addItem(providerNode);
-            viewTree.setParent(providerNode, serviceName);
-            viewTree.expandItem(providerNode);
-            List<String> providersList = dubboServiceBean.getProvidersList();
-            if (providersList != null) {
-                for (String _provider : providersList) {
-                    String url = DubboSwitchTool.decode(_provider);
-                    viewTree.addItem(url);
-                    viewTree.setParent(url, providerNode);
-                    viewTree.setChildrenAllowed(url, false);
-                }
+            addServiceNode(dubboServiceBean, serviceName,"consumers");
+            addServiceNode(dubboServiceBean, serviceName,"providers");
+        }
+    }
+
+    /**
+     * 添加节点
+     * @param dubboServiceBean
+     * @param serviceName
+     * @param node
+     */
+    private void addServiceNode(DubboServiceBean dubboServiceBean, String serviceName,String node) {
+        String serviceNode = serviceName + "->" + node;
+        viewTree.addItem(serviceNode);
+        viewTree.setParent(serviceNode, serviceName);
+        viewTree.expandItem(serviceNode);
+        List<String> nodeList = null;
+        if ("providers".equals(node)) {
+            nodeList = dubboServiceBean.getProvidersList();
+        } else if ("consumers".equals(node)) {
+            nodeList = dubboServiceBean.getConsumersList();
+        }
+        if (nodeList != null) {
+            for (String _node : nodeList) {
+                String url = DubboSwitchTool.decode(_node);
+                viewTree.addItem(url);
+                viewTree.setParent(url, _node);
+                viewTree.setChildrenAllowed(url, false);
             }
         }
     }
