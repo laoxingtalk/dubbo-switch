@@ -217,6 +217,7 @@ public class ZookeeperAppViewUI extends Window{
             String serviceName = dubboServiceBean.getServiceName();
             viewTree.addItem(serviceName);
             viewTree.expandItem(serviceName);
+            viewTree.setItemIcon(serviceName,FontAwesome.CLOUD);
             addServiceNode(dubboServiceBean, serviceName,"consumers");
             addServiceNode(dubboServiceBean, serviceName,"providers");
         }
@@ -244,6 +245,7 @@ public class ZookeeperAppViewUI extends Window{
                 String url = DubboSwitchTool.decode(_node);
                 viewTree.addItem(url);
                 viewTree.setParent(url, _node);
+                viewTree.setItemIcon(url,FontAwesome.STAR_O);
                 viewTree.setChildrenAllowed(url, false);
             }
         }
