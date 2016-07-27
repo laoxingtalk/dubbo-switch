@@ -12,7 +12,7 @@
 ### DubboSwitch 如何运行:
 >- 下载并安装 Oracle JDK 1.8
 >- 下载最新 DubboSwitch Jar 文件 ([下载地址](https://github.com/xburning/dubbo-switch/releases "下载"))
->- 运行命令： `java -jar dubbo-switch-1.x.jar`
+>- 运行命令： `java -jar -Dserver.port=8080 dubbo-switch-1.x.jar`
 >- 浏览器访问：http://localhost:8080/
 
 ###界面：
