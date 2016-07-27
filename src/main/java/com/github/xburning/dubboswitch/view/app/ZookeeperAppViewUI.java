@@ -174,10 +174,12 @@ public class ZookeeperAppViewUI extends Window{
     private Button createViewButton(){
         Button viewButton = new Button("查看",FontAwesome.EYE);
         viewButton.setStyleName(ValoTheme.BUTTON_FRIENDLY);
+        viewButton.setDisableOnClick(true);
         viewButton.addClickListener((Button.ClickListener) clickEvent -> {
             Long id = (Long) viewBox.getValue();
             if (id == null) {
                 Notification.show("请选择要查看的" + (isSelectedConsumer ? "消费者" : "提供者") + "!", Notification.Type.ERROR_MESSAGE);
+                viewButton.setEnabled(true);
                 return;
             }
             ZookeeperConsumer consumer = null;
@@ -186,12 +188,14 @@ public class ZookeeperAppViewUI extends Window{
                 consumer = zookeeperConsumerRepository.findOne(id);
                 if (consumer == null) {
                     Notification.show("消费者获取失败!", Notification.Type.ERROR_MESSAGE);
+                    viewButton.setEnabled(true);
                     return;
                 }
             } else {
                 provider = zookeeperProviderRepository.findOne(id);
                 if (provider == null) {
                     Notification.show("提供者获取失败!", Notification.Type.ERROR_MESSAGE);
+                    viewButton.setEnabled(true);
                     return;
                 }
             }
@@ -199,9 +203,11 @@ public class ZookeeperAppViewUI extends Window{
             Response response = DubboSwitchTool.viewAppServices(hostPort, appNameField.getValue());
             if (!response.isSuccess()) {
                 Notification.show(response.getMessage(), Notification.Type.ERROR_MESSAGE);
+                viewButton.setEnabled(true);
                 return;
             }
             buildViewUI(response.getDubboServiceBeanList());
+            viewButton.setEnabled(true);
         });
         return viewButton;
     }
