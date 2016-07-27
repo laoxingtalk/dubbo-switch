@@ -265,7 +265,7 @@ public class DubboSwitchTool {
         try {
             return URLDecoder.decode(consumer, CHAR_ENCODING);
         } catch (UnsupportedEncodingException e) {
-            logger.error("",e);
+            logger.error("url编码失败",e);
             return consumer;
         }
     }
@@ -283,7 +283,7 @@ public class DubboSwitchTool {
             zooKeeper.getChildren(DUBBO_ROOT_NODE, false);
             return zooKeeper;
         } catch (Exception e) {
-            logger.error("连接zk",e);
+            logger.error("zk连接失败",e);
             closeZk(zooKeeper);
             return null;
         }
@@ -298,7 +298,7 @@ public class DubboSwitchTool {
             try {
                 zookeepr.close();
             } catch (InterruptedException e) {
-                logger.error("关闭zk",e);
+                logger.error("zk关闭失败",e);
             }
         }
     }
