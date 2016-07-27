@@ -51,9 +51,9 @@ public class ZookeeperAppViewUI extends Window{
         setModal(true);
         setClosable(true);
         setDraggable(false);
-        setResizable(true);
+        setResizable(false);
         setWidth(1000,Unit.PIXELS);
-        setHeight(800,Unit.PIXELS);
+        setHeight(600,Unit.PIXELS);
         setContent();
     }
 
@@ -91,7 +91,11 @@ public class ZookeeperAppViewUI extends Window{
      */
     private void addViewTree(VerticalLayout verticalLayout) {
         viewTree = new Tree();
-        verticalLayout.addComponent(viewTree);
+        Panel treePanel = new Panel();
+        treePanel.setHeight(490,Unit.PIXELS);
+        treePanel.setWidth(1000,Unit.PIXELS);
+        treePanel.setContent(viewTree);
+        verticalLayout.addComponent(treePanel);
     }
 
 
